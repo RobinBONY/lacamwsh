@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light, dark;
+}
+
+/* Fonts */
+@font-face {
+  font-family: "Mixta Didone Alt";
+  src:
+    url("/fonts/MixtaDidoneAlt-Bold.woff2") format("woff2"),
+    url("/fonts/MixtaDidoneAlt-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom theme variables */
+@theme {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Mixta Didone Alt", Georgia, serif;
+}
+
+/* Utility classes */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.font-light {
+  font-weight: 300;
+}

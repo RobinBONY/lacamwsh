@@ -1,0 +1,61 @@
+---
+import Logo from "./Logo.astro";
+
+interface Props {
+  currentPage?: string;
+}
+
+const { currentPage = "" } = Astro.props;
+
+const navItems = [
+  { name: "Séries", translateKey: "nav.series", href: "/series" },
+  { name: "Vidéos", translateKey: "nav.videos", href: "/videos" },
+  { name: "About", translateKey: "nav.about", href: "/about" },
+  { name: "Contact", translateKey: "nav.contact", href: "/contact" },
+];
+---
+
+<nav
+  class="fixed left-0 bottom-0 w-full h-14 flex flex-row items-center justify-around bg-base-200 z-50 md:top-0 md:bottom-auto md:h-screen md:w-12 md:flex-col md:justify-start md:gap-10 md:py-6"
+>
+  <!-- Logo (hidden on mobile, shown on desktop) -->
+  <a
+    href="/"
+    class="hidden md:block text-base-content hover:text-primary transition-colors"
+  >
+    <Logo />
+  </a>
+
+  <!-- Navigation -->
+  <ul
+    class="flex flex-row items-center justify-around w-full md:flex-col md:items-start md:gap-6 md:w-auto"
+  >
+    {
+      navItems.map((item) => (
+        <li>
+          <a
+            href={item.href}
+            data-translate={item.translateKey}
+            class:list={[
+              "nav-link text-xs md:text-sm font-medium tracking-wider uppercase transition-colors",
+              currentPage === item.name
+                ? "text-primary"
+                : "text-base-content hover:text-primary",
+            ]}
+          >
+            {item.name}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  @media (min-width: 768px) {
+    .nav-link {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+  }
+</style>

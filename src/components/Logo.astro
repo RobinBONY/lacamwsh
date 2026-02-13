@@ -1,0 +1,27 @@
+---
+import camLight from "../assets/CAM light.png";
+import camDark from "../assets/CAM dark.png";
+---
+
+<div class="logo">
+  <img src={camLight.src} alt="CAM" class="h-8 md:h-24 w-auto logo-light" />
+  <img src={camDark.src} alt="CAM" class="h-8 md:h-24 w-auto logo-dark" />
+</div>
+
+<style>
+  .logo {
+    transform: rotate(90deg);
+  }
+  .logo img {
+    filter: contrast(1.4) brightness(1.2);
+  }
+  .logo-dark {
+    display: none;
+  }
+  :global([data-theme="dark"]) .logo-light {
+    display: none;
+  }
+  :global([data-theme="dark"]) .logo-dark {
+    display: block;
+  }
+</style>

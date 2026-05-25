@@ -1,0 +1,232 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import MainLayout from "../../layouts/MainLayout.astro";
+import SectionTitle from "../ui/SectionTitle.astro";
+import { getT, formatDate, type Locale } from "../../i18n/utils";
+
+interface Props {
+  entry: CollectionEntry<"collections">;
+  locale: Locale;
+}
+
+const { entry, locale } = Astro.props;
+const t = getT(locale);
+const { Content } = await render(entry);
+
+// JSON-LD ImageGallery pour cette page collection
+const galleryJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ImageGallery",
+  name: entry.data.title,
+  description: entry.data.description,
+  datePublished: entry.data.date.toISOString(),
+  associatedMedia: entry.data.photos.map((src) => ({
+    "@type": "ImageObject",
+    contentUrl: src,
+  })),
+};
+---
+
+<MainLayout
+  locale={locale}
+  currentPage={entry.id}
+  title={`${entry.data.title} — Camille Neto`}
+  description={entry.data.description ?? t("about.lead")}
+>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(galleryJsonLd)} />
+
+  <article class="min-h-dvh px-6 pt-24 pb-16 max-w-7xl mx-auto bg-[var(--color-bg)] text-[var(--color-fg)]">
+    <header class="text-center mb-12">
+      <p class="text-xs uppercase tracking-[0.25em] opacity-50 m-0 mb-3">
+        {formatDate(entry.data.date, locale)}
+      </p>
+      <SectionTitle as="h1" size="large">{entry.data.title}</SectionTitle>
+      {
+        entry.data.description && (
+          <p class="text-lg opacity-80 max-w-2xl mx-auto mb-6 leading-relaxed">
+            {entry.data.description}
+          </p>
+        )
+      }
+      <div class="max-w-2xl mx-auto text-[0.95rem] leading-[1.7] opacity-70">
+        <Content />
+      </div>
+    </header>
+
+    <div
+      class="gallery columns-1 sm:columns-2 lg:columns-3 gap-4"
+      data-photos={JSON.stringify(entry.data.photos)}
+    ></div>
+  </article>
+
+  <div
+    id="lightbox"
+    class="fixed inset-0 z-[1000] hidden items-center justify-center p-8 backdrop-blur-md"
+    style="background-color: rgba(10,10,10,0.96);"
+    aria-hidden="true"
+    role="dialog"
+  >
+    <button class="lightbox-btn absolute top-6 right-6" aria-label="Close" data-lightbox-action="close">×</button>
+    <button class="lightbox-btn absolute left-6 top-1/2 -translate-y-1/2" aria-label="Previous" data-lightbox-action="prev">‹</button>
+    <img class="lightbox-image max-w-[90vw] max-h-[85vh] object-contain select-none shadow-[0_20px_60px_rgba(0,0,0,0.6)]" alt="" />
+    <button class="lightbox-btn absolute right-6 top-1/2 -translate-y-1/2" aria-label="Next" data-lightbox-action="next">›</button>
+    <p class="lightbox-counter absolute bottom-6 left-1/2 -translate-x-1/2 text-xs uppercase tracking-[0.2em] opacity-70 m-0" style="color: #f4ede0;"></p>
+  </div>
+</MainLayout>
+
+<script>
+  function shuffle<T>(array: T[]): T[] {
+    const a = [...array];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function renderGallery(container: HTMLElement) {
+    const raw = container.getAttribute("data-photos");
+    if (!raw) return;
+    const photos: string[] = JSON.parse(raw);
+    const shuffled = shuffle(photos);
+    container.innerHTML = shuffled
+      .map(
+        (src, i) => `
+          <button type="button" class="gallery-item" data-lightbox-index="${i}">
+            <img src="${src}" alt="" loading="lazy" decoding="async" />
+          </button>
+        `,
+      )
+      .join("");
+    setupLightboxThumbnails(shuffled);
+  }
+
+  let lightboxPhotos: string[] = [];
+  let lightboxIndex = 0;
+
+  function setupLightboxThumbnails(photos: string[]) {
+    lightboxPhotos = photos;
+    document.querySelectorAll<HTMLButtonElement>(".gallery-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.getAttribute("data-lightbox-index") || "0", 10);
+        openLightbox(idx);
+      });
+    });
+  }
+
+  function openLightbox(idx: number) {
+    lightboxIndex = idx;
+    const lb = document.getElementById("lightbox");
+    if (!lb) return;
+    lb.setAttribute("aria-hidden", "false");
+    lb.classList.remove("hidden");
+    lb.classList.add("flex");
+    updateLightboxImage();
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeLightbox() {
+    const lb = document.getElementById("lightbox");
+    if (!lb) return;
+    lb.setAttribute("aria-hidden", "true");
+    lb.classList.add("hidden");
+    lb.classList.remove("flex");
+    document.body.style.overflow = "";
+  }
+
+  function updateLightboxImage() {
+    const img = document.querySelector<HTMLImageElement>(".lightbox-image");
+    const counter = document.querySelector<HTMLElement>(".lightbox-counter");
+    if (!img || lightboxPhotos.length === 0) return;
+    img.src = lightboxPhotos[lightboxIndex];
+    if (counter) counter.textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
+  }
+
+  function nextLightbox() {
+    lightboxIndex = (lightboxIndex + 1) % lightboxPhotos.length;
+    updateLightboxImage();
+  }
+  function prevLightbox() {
+    lightboxIndex = (lightboxIndex - 1 + lightboxPhotos.length) % lightboxPhotos.length;
+    updateLightboxImage();
+  }
+
+  function wireLightboxControls() {
+    const lb = document.getElementById("lightbox");
+    if (!lb || lb.dataset.wired === "true") return;
+    lb.dataset.wired = "true";
+
+    lb.querySelectorAll<HTMLButtonElement>("[data-lightbox-action]").forEach((btn) => {
+      const action = btn.getAttribute("data-lightbox-action");
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (action === "close") closeLightbox();
+        if (action === "next") nextLightbox();
+        if (action === "prev") prevLightbox();
+      });
+    });
+
+    lb.addEventListener("click", (e) => { if (e.target === lb) closeLightbox(); });
+    document.addEventListener("keydown", (e) => {
+      if (lb.getAttribute("aria-hidden") === "true") return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") nextLightbox();
+      if (e.key === "ArrowLeft") prevLightbox();
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>(".gallery").forEach(renderGallery);
+  wireLightboxControls();
+  document.addEventListener("astro:after-swap", () => {
+    document.querySelectorAll<HTMLElement>(".gallery").forEach(renderGallery);
+    wireLightboxControls();
+  });
+</script>
+
+<style>
+  /* Items galerie + lightbox : classes nommées car injectées en JS
+     (Tailwind ne peut pas les analyser dans innerHTML) */
+  .gallery :global(.gallery-item) {
+    display: block;
+    margin-bottom: 1rem;
+    break-inside: avoid;
+    overflow: hidden;
+    background-color: var(--color-bg-alt);
+    border: 1px solid var(--color-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    padding: 0;
+    cursor: zoom-in;
+    appearance: none;
+  }
+  .gallery :global(.gallery-item:hover) {
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+  .gallery :global(img) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Boutons lightbox (clavier-accessibles) */
+  .lightbox-btn {
+    background: transparent;
+    color: #f4ede0;
+    border: 1px solid rgba(244, 237, 224, 0.3);
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+  }
+  .lightbox-btn:hover {
+    background-color: #f4ede0;
+    color: #0a0a0a;
+  }
+</style>

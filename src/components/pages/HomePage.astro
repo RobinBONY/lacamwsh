@@ -1,0 +1,137 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import TornPaper from "../TornPaper.astro";
+import SectionEyebrow from "../ui/SectionEyebrow.astro";
+import SectionTitle from "../ui/SectionTitle.astro";
+import SectionLead from "../ui/SectionLead.astro";
+import salutSvg from "../../assets/salut.svg?raw";
+import { getT, type Locale } from "../../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getT(locale);
+---
+
+<MainLayout
+  locale={locale}
+  currentPage="home"
+  title={`Camille Neto — ${t("about.title")}`}
+  description={t("about.lead")}
+>
+  {/* ===== HERO ===== */}
+  <section id="hero" class="w-full h-dvh flex items-center justify-center px-6 py-16 relative [scroll-snap-align:start] [scroll-snap-stop:always] transition-colors duration-300">
+    <TornPaper variant={2} tone="paper" rotation={-1.2} class="hero-paper hero-paper--anim">
+      <div class="hero-paper__inner">
+        <div class="salut-svg" set:html={salutSvg} />
+        <p class="font-display font-bold text-[clamp(1.5rem,3vw,2.5rem)] -tracking-wider m-0">Camille Neto</p>
+        <p class="font-display text-xs uppercase tracking-[0.3em] opacity-60 m-0">{t("hero.tagline")}</p>
+      </div>
+    </TornPaper>
+    <a
+      href="#about"
+      class="absolute bottom-6 left-1/2 -translate-x-1/2 text-[var(--color-fg)] text-2xl no-underline opacity-70 z-10 animate-[bob_2s_ease-in-out_infinite]"
+      aria-label={t("scroll.cue")}
+    >↓</a>
+  </section>
+
+  {/* ===== À PROPOS ===== */}
+  <section id="about" class="w-full h-dvh flex items-center justify-center px-6 py-16 relative [scroll-snap-align:start] [scroll-snap-stop:always] transition-colors duration-300">
+    <TornPaper variant={3} tone="paper-soft" rotation={0.8} class="about-paper">
+      <div class="p-[clamp(2rem,5vw,4rem)]">
+        <SectionEyebrow>{t("about.eyebrow")}</SectionEyebrow>
+        <SectionTitle as="h2">{t("about.title")}</SectionTitle>
+        <SectionLead>{t("about.lead")}</SectionLead>
+        <p class="text-[0.95rem] leading-[1.7] m-0 opacity-75">{t("about.body")}</p>
+      </div>
+    </TornPaper>
+  </section>
+
+  {/* ===== CONTACT ===== */}
+  <section id="contact" class="w-full h-dvh flex items-center justify-center px-6 py-16 relative [scroll-snap-align:start] [scroll-snap-stop:always] transition-colors duration-300">
+    <TornPaper variant={4} tone="paper" rotation={-0.5} class="contact-paper">
+      <div class="p-[clamp(2rem,5vw,4rem)]">
+        <SectionEyebrow>{t("contact.eyebrow")}</SectionEyebrow>
+        <SectionTitle as="h2">{t("contact.title")}</SectionTitle>
+        <ul class="list-none p-0 mt-4 flex flex-col gap-3">
+          <li><a href="mailto:hello@camilleneto.com" class="contact-link">hello@camilleneto.com</a></li>
+          <li><a href="https://instagram.com/camille.neto" target="_blank" rel="noopener" class="contact-link">@camille.neto — Instagram</a></li>
+          <li><a href="tel:+33600000000" class="contact-link">+33 6 00 00 00 00</a></li>
+        </ul>
+      </div>
+    </TornPaper>
+  </section>
+</MainLayout>
+
+<style>
+  /* === Hero papier (taille spécifique, animation paperDrop) === */
+  .hero-paper {
+    width: min(90%, 60rem);
+    aspect-ratio: 5 / 3;
+  }
+  .hero-paper__inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
+  }
+  .salut-svg {
+    width: 100%;
+    max-width: 28rem;
+    height: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+  }
+  .salut-svg :global(svg) { width: 100%; height: 100%; max-height: 100%; }
+  .salut-svg :global(svg path),
+  .salut-svg :global(svg g) { fill: currentColor !important; }
+
+  .hero-paper--anim {
+    animation: paperDrop 1.2s var(--ease-tear) both;
+    transform-origin: center top;
+  }
+  @keyframes paperDrop {
+    0%   { opacity: 0; transform: translateY(-3rem) rotate(-8deg) scale(0.92); }
+    60%  { opacity: 1; transform: translateY(0.4rem) rotate(0.5deg) scale(1.01); }
+    100% { opacity: 1; transform: translateY(0) rotate(-1.2deg) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-paper--anim { animation: none; }
+  }
+
+  /* Scroll cue : keyframe non disponible en utilitaire Tailwind par défaut */
+  @keyframes bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50%      { transform: translate(-50%, 0.4rem); }
+  }
+
+  /* === Sizings spécifiques aux papiers About / Contact === */
+  .about-paper {
+    width: min(90%, 48rem);
+    min-height: 60dvh;
+  }
+  .contact-paper {
+    width: min(90%, 44rem);
+    min-height: 50dvh;
+  }
+
+  /* === Liens de contact (border-bottom animé) === */
+  .contact-link {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 0.15rem;
+    transition: opacity 0.2s ease;
+  }
+  .contact-link:hover { opacity: 0.6; }
+</style>

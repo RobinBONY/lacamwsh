@@ -1,61 +1,212 @@
 ---
-import Logo from "./Logo.astro";
+import { getCollection } from "astro:content";
+import TornPaper from "./TornPaper.astro";
+import { localizePath, DEFAULT_LOCALE, type Locale } from "../i18n/utils";
 
 interface Props {
   currentPage?: string;
+  locale?: Locale;
 }
 
-const { currentPage = "" } = Astro.props;
+const { currentPage = "", locale = DEFAULT_LOCALE }: Props = Astro.props;
 
-const navItems = [
-  { name: "Séries", translateKey: "nav.series", href: "/series" },
-  { name: "Vidéos", translateKey: "nav.videos", href: "/videos" },
-  { name: "About", translateKey: "nav.about", href: "/about" },
-  { name: "Contact", translateKey: "nav.contact", href: "/contact" },
-];
+const allCollections = await getCollection("collections", ({ data }) => {
+  return data.draft !== true;
+});
+
+const sortedCollections = allCollections.sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const ROTATIONS = [-1.6, 0.9, -0.6, 1.2, -1.0, 0.5, -1.3, 0.8];
+const TONES: Array<"paper" | "paper-soft"> = ["paper", "paper-soft"];
+const OFFSETS = [0, -3, 2, -4, 1, -2, 3, -1];
+const VARIANTS = [1, 2, 3, 4, 5] as const;
+
+interface Tab {
+  href: string;
+  label: string;
+  active: boolean;
+  rotation: number;
+  tone: "paper" | "paper-soft";
+  offset: number;
+  variant: 1 | 2 | 3 | 4 | 5;
+}
+
+const tabs: Tab[] = sortedCollections.map((entry, i) => ({
+  href: localizePath(`/collections/${entry.id}`, locale),
+  label: entry.data.title,
+  active: currentPage === entry.id,
+  rotation: ROTATIONS[i % ROTATIONS.length],
+  tone: TONES[i % TONES.length],
+  offset: OFFSETS[i % OFFSETS.length],
+  variant: VARIANTS[i % VARIANTS.length],
+}));
 ---
 
-<nav
-  class="fixed left-0 bottom-0 w-full h-14 flex flex-row items-center justify-around bg-base-200 z-50 md:top-0 md:bottom-auto md:h-screen md:w-12 md:flex-col md:justify-start md:gap-10 md:py-6"
->
-  <!-- Logo (hidden on mobile, shown on desktop) -->
-  <a
-    href="/"
-    class="hidden md:block text-base-content hover:text-primary transition-colors"
-  >
-    <Logo />
-  </a>
-
-  <!-- Navigation -->
-  <ul
-    class="flex flex-row items-center justify-around w-full md:flex-col md:items-start md:gap-6 md:w-auto"
-  >
+<aside class="intercalaires" aria-label="Collections">
+  <ul class="intercalaires-list">
     {
-      navItems.map((item) => (
-        <li>
+      tabs.map((tab, i) => (
+        <li
+          class:list={[
+            "intercalaire-wrapper",
+            tab.active && "intercalaire-wrapper--active",
+          ]}
+          style={`--idx: ${i}; --offset: ${tab.offset}px; --rotation: ${tab.rotation}deg;`}
+        >
           <a
-            href={item.href}
-            data-translate={item.translateKey}
-            class:list={[
-              "nav-link text-xs md:text-sm font-medium tracking-wider uppercase transition-colors",
-              currentPage === item.name
-                ? "text-primary"
-                : "text-base-content hover:text-primary",
-            ]}
+            href={tab.href}
+            class="intercalaire-link"
+            aria-current={tab.active ? "page" : undefined}
+            data-astro-prefetch
           >
-            {item.name}
+            <TornPaper
+              variant={tab.variant}
+              tone={tab.tone}
+              rotation={tab.rotation}
+              class="intercalaire"
+            >
+              <div class="intercalaire-inner">
+                <span class="intercalaire-label">{tab.label}</span>
+              </div>
+            </TornPaper>
           </a>
         </li>
       ))
     }
   </ul>
-</nav>
+</aside>
 
 <style>
-  @media (min-width: 768px) {
-    .nav-link {
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
+  /* ============================================================
+     INTERCALAIRES (desktop ≥ 1024px)
+     ============================================================ */
+  .intercalaires {
+    position: fixed;
+    top: 4.5rem;
+    bottom: 0;
+    left: 0;
+    width: 5rem;
+    z-index: 30;
+    overflow-y: auto;
+    overflow-x: visible;
+    padding: 1rem 0 2rem;
+    scrollbar-width: none;
+  }
+  .intercalaires::-webkit-scrollbar { display: none; }
+
+  .intercalaires-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .intercalaire-wrapper {
+    position: relative;
+    margin-left: var(--offset, 0);
+    z-index: calc(10 + var(--idx, 0));
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .intercalaire-wrapper:hover {
+    transform: translateX(0.75rem);
+    z-index: 100;
+  }
+
+  .intercalaire-wrapper--active { transform: translateX(1.25rem); z-index: 90; }
+  .intercalaire-wrapper--active:hover { transform: translateX(1.5rem); }
+
+  .intercalaire-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  :global(.intercalaire) {
+    width: 4.5rem !important;
+    min-height: 6rem !important;
+    filter: drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.35)) !important;
+    transition: filter 0.3s ease, transform 0.4s ease !important;
+  }
+
+  .intercalaire-wrapper:hover :global(.intercalaire),
+  .intercalaire-wrapper--active :global(.intercalaire) {
+    filter: drop-shadow(4px 6px 12px rgba(0, 0, 0, 0.5)) !important;
+  }
+
+  .intercalaire-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem 0.25rem;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+  }
+
+  .intercalaire-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: inherit;
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     MOBILE (< 1024px) — bandeau bas horizontal
+     ============================================================ */
+  @media (max-width: 1023px) {
+    .intercalaires {
+      top: auto;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: auto;
+      height: auto;
+      padding: 0.5rem 0;
+      background-color: var(--color-bg-alt);
+      border-top: 1px solid var(--color-border);
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .intercalaires-list {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0 0.75rem;
+    }
+
+    .intercalaire-wrapper {
+      margin-left: 0;
+      flex-shrink: 0;
+    }
+
+    .intercalaire-wrapper:hover,
+    .intercalaire-wrapper--active {
+      transform: translateY(-0.25rem);
+    }
+
+    :global(.intercalaire) {
+      width: 6rem !important;
+      min-height: auto !important;
+      height: 3rem !important;
+    }
+
+    .intercalaire-inner { padding: 0.25rem 0.5rem; }
+
+    .intercalaire-label {
+      writing-mode: horizontal-tb;
+      font-size: 0.65rem;
+      white-space: nowrap;
     }
   }
 </style>

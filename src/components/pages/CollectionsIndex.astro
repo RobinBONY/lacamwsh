@@ -1,0 +1,95 @@
+---
+import { getCollection } from "astro:content";
+import MainLayout from "../../layouts/MainLayout.astro";
+import TornPaper from "../TornPaper.astro";
+import SectionEyebrow from "../ui/SectionEyebrow.astro";
+import SectionTitle from "../ui/SectionTitle.astro";
+import { getT, localizePath, type Locale } from "../../i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getT(locale);
+
+const allCollections = await getCollection("collections", ({ data }) => !data.draft);
+const sortedCollections = allCollections.sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const variants = [1, 2, 3, 4, 5] as const;
+const rotations = [-1.6, 0.8, -0.5, 1.4, -1.1, 0.6];
+---
+
+<MainLayout
+  locale={locale}
+  currentPage="all"
+  title={`${t("collections.title")} — Camille Neto`}
+  description={t("about.lead")}
+>
+  <section class="min-h-dvh px-6 pt-24 pb-16 max-w-7xl mx-auto bg-[var(--color-bg)] text-[var(--color-fg)]">
+    <header class="text-center mb-16">
+      <SectionEyebrow>{t("collections.eyebrow")}</SectionEyebrow>
+      <SectionTitle as="h1" size="large">{t("collections.title")}</SectionTitle>
+      <p class="text-sm uppercase tracking-[0.2em] opacity-50 m-0">
+        {sortedCollections.length} {t("collections.meta")}
+      </p>
+    </header>
+
+    <ul class="list-none m-0 p-4 grid gap-12 gap-x-8" style="grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));">
+      {
+        sortedCollections.map((entry, i) => (
+          <li class="transition-transform duration-400">
+            <a
+              href={localizePath(`/collections/${entry.id}`, locale)}
+              class="card-link block no-underline text-inherit"
+              data-astro-prefetch
+            >
+              <TornPaper
+                variant={variants[i % variants.length]}
+                tone={i % 2 === 0 ? "paper" : "paper-soft"}
+                rotation={rotations[i % rotations.length]}
+                class="card"
+              >
+                <div class="p-5">
+                  <div class="card-image aspect-[4/5] overflow-hidden bg-black/5 mb-4">
+                    <img
+                      src={entry.data.cover}
+                      alt={entry.data.title}
+                      loading="lazy"
+                      decoding="async"
+                      class="w-full h-full object-cover block transition-transform duration-500"
+                    />
+                  </div>
+                  <div class="px-1">
+                    <h2 class="font-display font-bold text-xl m-0 mb-1.5 -tracking-tight leading-tight">
+                      {entry.data.title}
+                    </h2>
+                    {entry.data.description && (
+                      <p class="text-sm m-0 leading-snug opacity-75">{entry.data.description}</p>
+                    )}
+                  </div>
+                </div>
+              </TornPaper>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</MainLayout>
+
+<style>
+  /* Effet hover sur la carte (impossible en pur Tailwind à cause du sélecteur :global) */
+  .card-link :global(.card) {
+    transition: transform 0.4s ease, filter 0.4s ease;
+  }
+  .card-link:hover :global(.card) {
+    transform: rotate(0deg) scale(1.03);
+    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.4));
+  }
+  .card-link:hover .card-image img {
+    transform: scale(1.04);
+  }
+</style>

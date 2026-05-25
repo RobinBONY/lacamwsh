@@ -1,27 +1,39 @@
 ---
-import camLight from "../assets/CAM light.png";
-import camDark from "../assets/CAM dark.png";
+import camLogo from "../assets/logo.svg?raw";
+import { localizePath, getT, DEFAULT_LOCALE, type Locale } from "../i18n/utils";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = DEFAULT_LOCALE } = Astro.props;
+const t = getT(locale);
 ---
 
-<div class="logo">
-  <img src={camLight.src} alt="CAM" class="h-8 md:h-24 w-auto logo-light" />
-  <img src={camDark.src} alt="CAM" class="h-8 md:h-24 w-auto logo-dark" />
-</div>
+<a
+  href={localizePath("/", locale)}
+  class="flex items-center no-underline transition-transform duration-200 hover:scale-105"
+  aria-label={t("nav.home")}
+  data-astro-prefetch
+>
+  <div class="logo-svg" set:html={camLogo} />
+</a>
 
 <style>
-  .logo {
-    transform: rotate(90deg);
+  .logo-svg :global(svg) {
+    height: 1.5rem;
+    width: auto;
+    color: var(--color-fg);
   }
-  .logo img {
-    filter: contrast(1.4) brightness(1.2);
+  .logo-svg :global(svg path),
+  .logo-svg :global(svg g) {
+    fill: currentColor !important;
   }
-  .logo-dark {
-    display: none;
+
+  @media (min-width: 768px) {
+    .logo-svg :global(svg) { height: 2rem; }
   }
-  :global([data-theme="dark"]) .logo-light {
-    display: none;
-  }
-  :global([data-theme="dark"]) .logo-dark {
-    display: block;
+  @media (min-width: 1024px) {
+    .logo-svg :global(svg) { height: 2.5rem; }
   }
 </style>

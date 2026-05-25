@@ -1,0 +1,17 @@
+---
+interface Props {
+  as?: "h1" | "h2" | "h3";
+  size?: "default" | "large";
+  class?: string;
+}
+const { as: Tag = "h2", size = "default", class: className = "" }: Props = Astro.props;
+
+const sizeClass =
+  size === "large"
+    ? "text-[clamp(2.5rem,7vw,6rem)] tracking-[-0.03em]"
+    : "text-[clamp(2rem,4.5vw,3.5rem)] tracking-[-0.02em]";
+---
+
+<Tag class:list={["font-display font-bold leading-[1.05] m-0 mb-6", sizeClass, className]}>
+  <slot />
+</Tag>

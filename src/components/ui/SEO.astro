@@ -1,0 +1,69 @@
+---
+import { LOCALES, DEFAULT_LOCALE, type Locale } from "../../i18n/utils";
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+}
+
+const { locale, title, description } = Astro.props;
+
+// Hreflang : indique à Google les variantes linguistiques
+const currentPath = Astro.url.pathname;
+function stripLocale(path: string): string {
+  for (const loc of LOCALES) {
+    if (loc === DEFAULT_LOCALE) continue;
+    if (path === `/${loc}` || path === `/${loc}/`) return "/";
+    if (path.startsWith(`/${loc}/`)) return path.slice(loc.length + 1);
+  }
+  return path;
+}
+const basePath = stripLocale(currentPath);
+const alternates = LOCALES.map((loc) => ({
+  locale: loc,
+  href: loc === DEFAULT_LOCALE ? basePath : `/${loc}${basePath === "/" ? "" : basePath}`,
+}));
+
+// JSON-LD structuré : Astro / Google Search peut lire ça
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Camille Neto",
+  jobTitle: "Photographer",
+  url: new URL(currentPath, Astro.site).toString(),
+  sameAs: ["https://instagram.com/camille.neto"],
+  knowsLanguage: LOCALES,
+  workLocation: [
+    { "@type": "Place", name: "Paris, France" },
+    { "@type": "Place", name: "Lisbon, Portugal" },
+  ],
+};
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+
+{/* Open Graph */}
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content="website" />
+<meta property="og:locale" content={locale} />
+<meta property="og:url" content={Astro.url.toString()} />
+
+{/* Twitter */}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+
+{/* hreflang */}
+{alternates.map((alt) => (
+  <link rel="alternate" hreflang={alt.locale} href={alt.href} />
+))}
+<link rel="alternate" hreflang="x-default" href={basePath} />
+
+{/* Canonical */}
+<link rel="canonical" href={Astro.url.toString()} />
+
+{/* JSON-LD structured data */}
+<script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

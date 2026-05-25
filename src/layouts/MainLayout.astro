@@ -3,7 +3,7 @@ import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import Panel from "../components/Panel.astro";
 import SEO from "../components/ui/SEO.astro";
-import { getT, DEFAULT_LOCALE, type Locale } from "../i18n/utils";
+import { getT, asset, DEFAULT_LOCALE, type Locale } from "../i18n/utils";
 
 interface Props {
   locale?: Locale;
@@ -81,7 +81,7 @@ const pageDescription = description ?? t("about.lead");
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={asset("favicon.svg")} />
     <meta name="generator" content={Astro.generator} />
     <SEO locale={locale} title={pageTitle} description={pageDescription} />
     <ClientRouter />

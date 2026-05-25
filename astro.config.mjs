@@ -4,8 +4,11 @@ import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
+  // GitHub Pages : dépôt projet → site servi sous /lacamwsh/
+  // (vs un dépôt user-site `<user>.github.io` qui serait à la racine)
   site: "https://robinbony.github.io",
-  base: "/",
+  base: "/lacamwsh",
+  trailingSlash: "ignore",
   i18n: {
     defaultLocale: "fr",
     locales: ["fr", "en", "pt"],

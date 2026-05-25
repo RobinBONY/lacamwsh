@@ -1,5 +1,11 @@
 ---
-import { LOCALES, DEFAULT_LOCALE, type Locale } from "../../i18n/utils";
+import {
+  LOCALES,
+  switchLocale,
+  stripLocaleFromPath,
+  localizePath,
+  type Locale,
+} from "../../i18n/utils";
 
 interface Props {
   locale: Locale;
@@ -7,31 +13,35 @@ interface Props {
   description: string;
 }
 
-const { locale, title, description } = Astro.props;
+const { locale, title, description }: Props = Astro.props;
 
-// Hreflang : indique à Google les variantes linguistiques
+// Hreflang : on génère une URL absolue par locale, base path inclus.
+// `Astro.url.pathname` contient déjà le base path en production (ex: /lacamwsh/en/collections).
+// switchLocale() le gère via stripBase + addBase.
 const currentPath = Astro.url.pathname;
-function stripLocale(path: string): string {
-  for (const loc of LOCALES) {
-    if (loc === DEFAULT_LOCALE) continue;
-    if (path === `/${loc}` || path === `/${loc}/`) return "/";
-    if (path.startsWith(`/${loc}/`)) return path.slice(loc.length + 1);
-  }
-  return path;
-}
-const basePath = stripLocale(currentPath);
-const alternates = LOCALES.map((loc) => ({
-  locale: loc,
-  href: loc === DEFAULT_LOCALE ? basePath : `/${loc}${basePath === "/" ? "" : basePath}`,
-}));
 
-// JSON-LD structuré : Astro / Google Search peut lire ça
+const alternates = LOCALES.map((loc) => {
+  const path = switchLocale(currentPath, loc);
+  return {
+    locale: loc,
+    href: new URL(path, Astro.site).toString(),
+  };
+});
+
+// Chemin x-default (locale par défaut, sans préfixe de langue)
+const xDefaultPath = localizePath(stripLocaleFromPath(currentPath), undefined);
+const xDefaultHref = new URL(xDefaultPath, Astro.site).toString();
+
+// URL canonique (avec base path)
+const canonical = new URL(currentPath, Astro.site).toString();
+
+// JSON-LD structuré : Person
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "Camille Neto",
   jobTitle: "Photographer",
-  url: new URL(currentPath, Astro.site).toString(),
+  url: canonical,
   sameAs: ["https://instagram.com/camille.neto"],
   knowsLanguage: LOCALES,
   workLocation: [
@@ -49,21 +59,21 @@ const jsonLd = {
 <meta property="og:description" content={description} />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content={locale} />
-<meta property="og:url" content={Astro.url.toString()} />
+<meta property="og:url" content={canonical} />
 
 {/* Twitter */}
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
 
-{/* hreflang */}
+{/* hreflang : URLs absolues (recommandation Google) */}
 {alternates.map((alt) => (
   <link rel="alternate" hreflang={alt.locale} href={alt.href} />
 ))}
-<link rel="alternate" hreflang="x-default" href={basePath} />
+<link rel="alternate" hreflang="x-default" href={xDefaultHref} />
 
 {/* Canonical */}
-<link rel="canonical" href={Astro.url.toString()} />
+<link rel="canonical" href={canonical} />
 
 {/* JSON-LD structured data */}
 <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

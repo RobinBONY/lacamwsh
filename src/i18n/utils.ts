@@ -7,10 +7,11 @@ import {
 
 /**
  * Base path du déploiement (ex. "/lacamwsh/" sur GitHub Pages, "/" en dev).
- * Fourni automatiquement par Vite/Astro via la config `base` dans astro.config.mjs.
- * Toujours terminé par "/".
+ * Fourni par Vite/Astro via la config `base` dans astro.config.mjs.
+ * On normalise pour garantir un trailing slash (Vite ne le fait pas toujours).
  */
-const BASE = import.meta.env.BASE_URL;
+const BASE_RAW = import.meta.env.BASE_URL;
+const BASE = BASE_RAW.endsWith("/") ? BASE_RAW : `${BASE_RAW}/`;
 /** Base sans le trailing slash, ou "" si on est à la racine. */
 const BASE_PREFIX = BASE === "/" ? "" : BASE.replace(/\/$/, "");
 

@@ -16,65 +16,80 @@ const langLinks = LOCALES.map((loc) => ({
 }));
 ---
 
-<div role="group" class="flex items-center gap-2">
-  <a href="#contact" class="btn btn--primary">{t("menu.contact")}</a>
-
+<div class="lang-wrap relative flex items-stretch">
   <button
-    id="theme-toggle"
+    id="lang-toggle"
     type="button"
-    class="btn btn--icon"
-    aria-label="Toggle theme"
+    class="nav-cell nav-btn h-label"
+    aria-label="Language"
+    aria-haspopup="true"
+    aria-expanded="false"
   >
-    <svg id="theme-toggle-dark-icon" class="hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-    <svg id="theme-toggle-light-icon" class="hidden w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="4"/>
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-    </svg>
+    {locale.toUpperCase()}
   </button>
 
-  <div class="relative">
-    <button
-      id="lang-toggle"
-      type="button"
-      class="btn btn--icon"
-      aria-label="Language"
-      aria-haspopup="true"
-      aria-expanded="false"
-    >
-      <span class="text-[0.7rem] font-bold tracking-[0.1em]">{locale.toUpperCase()}</span>
-    </button>
-    <ul
-      id="lang-menu"
-      class="absolute top-[calc(100%+0.25rem)] right-0 m-0 p-1 list-none min-w-[9rem] z-[100] shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
-      style="background-color: var(--color-bg); border: 1px solid var(--color-border);"
-      role="menu"
-      hidden
-    >
-      {
-        langLinks.map((link) => (
-          <li>
-            <a
-              href={link.href}
-              role="menuitem"
-              data-astro-prefetch
-              class:list={[
-                "flex items-center gap-2 px-3 py-2 no-underline font-display text-[0.8rem] transition-colors duration-150 hover:bg-[var(--color-bg-alt)] text-[var(--color-fg)]",
-                link.locale === locale && "font-bold",
-              ]}
-            >
-              <span class="text-[0.7rem] font-bold tracking-[0.1em] opacity-60 min-w-[1.6rem]">
-                {link.locale.toUpperCase()}
-              </span>
-              <span class="flex-1">{link.label}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </div>
+  <ul
+    id="lang-menu"
+    class="lang-menu"
+    role="menu"
+    hidden
+  >
+    {
+      langLinks.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            role="menuitem"
+            data-astro-prefetch
+            class:list={["lang-item h-label", link.locale === locale && "is-current"]}
+          >
+            <span class="lang-code">{link.locale.toUpperCase()}</span>
+            <span>{link.label}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
 </div>
+
+<style>
+  .lang-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    min-width: 10rem;
+    z-index: 100;
+    background: var(--paper);
+    border: 1.5px solid var(--ink);
+    border-top: none;
+  }
+  .lang-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 150ms, color 150ms;
+  }
+  .lang-item:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .lang-item.is-current {
+    color: var(--red);
+  }
+  .lang-item.is-current:hover {
+    color: var(--paper);
+  }
+  .lang-code {
+    opacity: 0.6;
+    min-width: 1.8rem;
+  }
+</style>
 
 <script>
   function wireLangMenu() {
@@ -106,4 +121,3 @@ const langLinks = LOCALES.map((loc) => ({
   wireLangMenu();
   document.addEventListener("astro:after-swap", wireLangMenu);
 </script>
-

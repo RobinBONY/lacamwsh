@@ -1,130 +1,198 @@
 @import "tailwindcss";
 
-/* Variante dark : utilisable via la classe Tailwind `dark:` quand <html class="dark"> */
-@custom-variant dark (&:where(.dark, .dark *));
-
 /* =========================================================
-   DESIGN TOKENS — exposés à Tailwind via @theme
-   → Génère automatiquement : bg-paper, text-ink, font-display,
-     border-paper-edge, etc.
+   DESIGN TOKENS — système éditorial « Atelier »
+   Palette ivoire / encre / rouge · typo Archivo (Swiss modernist)
+   Exposés à Tailwind via @theme → bg-paper, text-ink, bg-red,
+   font-display, font-sans…
    ========================================================= */
 @theme {
-  /* Palette papier */
-  --color-paper:       #f4ede0;
-  --color-paper-soft:  #ece4d3;
-  --color-paper-edge:  #d9cfb8;
-
-  /* Palette encre */
-  --color-ink:         #0a0a0a;
-  --color-ink-soft:    #161616;
-  --color-ink-edge:    #2a2a2a;
+  /* Palette */
+  --color-paper:   #f2ede4;
+  --color-paper2:  #e8e1d2;
+  --color-ink:     #0d0d0d;
+  --color-red:     #e0331e;
 
   /* Typographie */
-  --font-display: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  --font-sans:    "Archivo", Helvetica, Arial, sans-serif;
+  --font-display: "Archivo Black", "Archivo", Helvetica, Arial, sans-serif;
 
   /* Easing custom (utilisable en ease-tear) */
-  --ease-tear: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-tear: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* =========================================================
-   VARIABLES SÉMANTIQUES — bascule auto light / dark
-   À utiliser pour les surfaces qui changent avec le thème.
-   Tailwind ne génère PAS d'utilitaires pour celles-ci
-   → on les consomme via `bg-[var(--color-bg)]` ou en CSS direct.
-   ========================================================= */
+/* Variables sémantiques consommées par les classes du design
+   (le design source utilise --paper / --ink / --red / --line) */
 :root {
-  --color-bg:        var(--color-paper);
-  --color-bg-alt:    var(--color-paper-soft);
-  --color-fg:        var(--color-ink);
-  --color-fg-muted:  #4a4a4a;
-  --color-border:    var(--color-paper-edge);
-}
+  --paper:  #f2ede4;
+  --paper2: #e8e1d2;
+  --ink:    #0d0d0d;
+  --red:    #e0331e;
+  --line:   rgba(13, 13, 13, 0.16);
+  --fg-muted: #3a362e;
 
-.dark {
-  --color-bg:        var(--color-ink);
-  --color-bg-alt:    var(--color-ink-soft);
-  --color-fg:        var(--color-paper);
-  --color-fg-muted:  #a8a39a;
-  --color-border:    var(--color-ink-edge);
+  /* Gabarit : hauteur barre du haut + largeur rail latéral */
+  --nav-h:  3.5rem;   /* 56px */
+  --rail-w: 3.5rem;   /* 56px */
 }
 
 /* =========================================================
    Base
    ========================================================= */
+html {
+  scroll-behavior: smooth;
+}
 html,
 body {
   height: 100%;
   margin: 0;
-  background-color: var(--color-bg);
-  color: var(--color-fg);
-  font-family: var(--font-display);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--red);
+  color: var(--paper);
+}
+
+a {
+  color: var(--ink);
+}
+a:hover {
+  color: var(--red);
+}
+
+/* Grain argentique — overlay global léger */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
 /* Focus visible cohérent — accessibilité */
 :focus-visible {
-  outline: 2px solid var(--color-fg);
+  outline: 2px solid var(--red);
   outline-offset: 3px;
 }
 
 /* =========================================================
-   BOUTONS — utilisés dans Panel (Logo CTA + Menu)
+   TYPOGRAPHIE — classes signatures du design
+   ========================================================= */
+.disp {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+.h-label {
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.h-body {
+  font-size: 16px;
+  line-height: 1.65;
+}
+.mono {
+  font-family: ui-monospace, Menlo, monospace;
+}
+.red      { color: var(--red); }
+.bg-red   { background: var(--red); }
+
+/* =========================================================
+   CADRES & BORDS — grilles catalogue
+   ========================================================= */
+.box      { border: 1.5px solid var(--ink); }
+.box-thin { border: 1px solid var(--line); }
+.cell     { border: 1px solid var(--ink); }
+.grid-line { border-color: var(--line); }
+
+.photo-frame {
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+}
+.photo-frame img {
+  filter: grayscale(1) contrast(1.05);
+}
+
+/* Repères de scan (coins rouges) sur les cadres */
+.scan-mark { position: absolute; width: 16px; height: 16px; }
+.scan-mark.tl { top: -1px; left: -1px; border-top: 2px solid var(--red); border-left: 2px solid var(--red); }
+.scan-mark.br { bottom: -1px; right: -1px; border-bottom: 2px solid var(--red); border-right: 2px solid var(--red); }
+
+/* =========================================================
+   BOUTONS
    ========================================================= */
 .btn {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  text-decoration: none;
-  border: 1px solid var(--color-border);
-  background-color: transparent;
-  color: var(--color-fg);
-  padding: 0.5rem 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  gap: 8px;
+  padding: 14px 26px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 12px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 180ms, color 180ms;
 }
 .btn:hover {
-  background-color: var(--color-fg);
-  color: var(--color-bg);
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-red {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--paper);
+}
+.btn-red:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
 }
 
-.btn--primary {
-  background-color: var(--color-fg);
-  color: var(--color-bg);
+/* =========================================================
+   CHAMPS DE FORMULAIRE
+   ========================================================= */
+.field {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--ink);
+  padding: 12px 4px;
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  outline: none;
 }
-.btn--primary:hover {
-  background-color: transparent;
-  color: var(--color-fg);
-}
+.field::placeholder { color: rgba(13, 13, 13, 0.4); }
+.field:focus { border-bottom-color: var(--red); }
 
-.btn--icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-}
-
-/* Variant "active" pour indiquer la page courante (ex: bouton Collections) */
-.btn--active {
-  background-color: var(--color-fg);
-  color: var(--color-bg);
-}
-
-/* Skip link (visible au focus) */
+/* =========================================================
+   Skip link (visible au focus)
+   ========================================================= */
 .skip-link {
   position: absolute;
   top: 0.5rem;
   left: 0.5rem;
   z-index: 9999;
   padding: 0.5rem 1rem;
-  background-color: var(--color-fg);
-  color: var(--color-bg);
+  background-color: var(--ink);
+  color: var(--paper);
   text-decoration: none;
-  font-family: var(--font-display);
+  font-weight: 700;
   font-size: 0.875rem;
   transform: translateY(-200%);
   transition: transform 0.2s ease;

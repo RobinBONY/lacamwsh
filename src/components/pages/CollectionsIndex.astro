@@ -1,9 +1,6 @@
 ---
 import { getCollection } from "astro:content";
 import MainLayout from "../../layouts/MainLayout.astro";
-import TornPaper from "../TornPaper.astro";
-import SectionEyebrow from "../ui/SectionEyebrow.astro";
-import SectionTitle from "../ui/SectionTitle.astro";
 import { getT, localizePath, type Locale } from "../../i18n/utils";
 
 interface Props {
@@ -17,9 +14,7 @@ const allCollections = await getCollection("collections", ({ data }) => !data.dr
 const sortedCollections = allCollections.sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
-
-const variants = [1, 2, 3, 4, 5] as const;
-const rotations = [-1.6, 0.8, -0.5, 1.4, -1.1, 0.6];
+const total = String(sortedCollections.length).padStart(2, "0");
 ---
 
 <MainLayout
@@ -28,68 +23,81 @@ const rotations = [-1.6, 0.8, -0.5, 1.4, -1.1, 0.6];
   title={`${t("collections.title")} — Camille Neto`}
   description={t("about.lead")}
 >
-  <section class="min-h-dvh px-6 pt-24 pb-16 max-w-7xl mx-auto bg-[var(--color-bg)] text-[var(--color-fg)]">
-    <header class="text-center mb-16">
-      <SectionEyebrow>{t("collections.eyebrow")}</SectionEyebrow>
-      <SectionTitle as="h1" size="large">{t("collections.title")}</SectionTitle>
-      <p class="text-sm uppercase tracking-[0.2em] opacity-50 m-0">
-        {sortedCollections.length} {t("collections.meta")}
+  <section class="min-h-dvh px-6 md:px-12 py-16">
+    <header
+      class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 pb-8"
+      style="border-bottom:2px solid var(--ink);"
+    >
+      <div>
+        <span class="h-label red mb-4 block">N° 004 — {t("collections.eyebrow")}</span>
+        <h1 class="disp" style="font-size:clamp(2.4rem,7vw,5rem);">{t("collections.title")}</h1>
+      </div>
+      <p class="h-body max-w-sm mono" style="font-size:13px; color:var(--fg-muted);">
+        {t("collections.intro")}
       </p>
     </header>
 
-    <ul class="list-none m-0 p-4 grid gap-12 gap-x-8" style="grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 box">
       {
         sortedCollections.map((entry, i) => (
-          <li class="transition-transform duration-400">
-            <a
-              href={localizePath(`/collections/${entry.id}`, locale)}
-              class="card-link block no-underline text-inherit"
-              data-astro-prefetch
-            >
-              <TornPaper
-                variant={variants[i % variants.length]}
-                tone={i % 2 === 0 ? "paper" : "paper-soft"}
-                rotation={rotations[i % rotations.length]}
-                class="card"
-              >
-                <div class="p-5">
-                  <div class="card-image aspect-[4/5] overflow-hidden bg-black/5 mb-4">
-                    <img
-                      src={entry.data.cover}
-                      alt={entry.data.title}
-                      loading="lazy"
-                      decoding="async"
-                      class="w-full h-full object-cover block transition-transform duration-500"
-                    />
-                  </div>
-                  <div class="px-1">
-                    <h2 class="font-display font-bold text-xl m-0 mb-1.5 -tracking-tight leading-tight">
-                      {entry.data.title}
-                    </h2>
-                    {entry.data.description && (
-                      <p class="text-sm m-0 leading-snug opacity-75">{entry.data.description}</p>
-                    )}
-                  </div>
-                </div>
-              </TornPaper>
-            </a>
-          </li>
+          <a
+            href={localizePath(`/collections/${entry.id}`, locale)}
+            class="col-card cell"
+            data-astro-prefetch
+          >
+            <div class="photo-frame relative" style="border:0; border-bottom:1px solid var(--ink);">
+              <img
+                src={entry.data.cover}
+                alt={entry.data.title}
+                loading="lazy"
+                decoding="async"
+                class="w-full object-cover block"
+                style="aspect-ratio:4/5;"
+              />
+            </div>
+            <div class="flex justify-between items-baseline px-5 pt-5 pb-2 gap-3">
+              <h2 class="disp" style="font-size:1.6rem;">{entry.data.title}</h2>
+              <span class="mono" style="font-size:11px; color:#666; white-space:nowrap;">
+                {`N° ${String(i + 1).padStart(2, "0")}`}
+              </span>
+            </div>
+            {entry.data.description && (
+              <p class="px-5 pb-5 mono" style="font-size:12px; color:#666;">
+                {entry.data.description}
+              </p>
+            )}
+          </a>
         ))
       }
-    </ul>
+    </div>
+
+    <div class="flex justify-between items-end mt-8 mono" style="font-size:11px; color:#666;">
+      <span>Index — {total} / {total} {t("collections.meta")}</span>
+      <span>↓</span>
+    </div>
   </section>
 </MainLayout>
 
 <style>
-  /* Effet hover sur la carte (impossible en pur Tailwind à cause du sélecteur :global) */
-  .card-link :global(.card) {
-    transition: transform 0.4s ease, filter 0.4s ease;
+  .col-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 350ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
-  .card-link:hover :global(.card) {
-    transform: rotate(0deg) scale(1.03);
-    filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.4));
+  .col-card:hover {
+    transform: translateY(-6px);
   }
-  .card-link:hover .card-image img {
-    transform: scale(1.04);
+  .col-card:hover :global(.photo-frame) {
+    border-color: var(--red);
+  }
+  .col-card :global(.photo-frame) {
+    overflow: hidden;
+  }
+  .col-card :global(.photo-frame img) {
+    transition: transform 500ms ease;
+  }
+  .col-card:hover :global(.photo-frame img) {
+    transform: scale(1.03);
   }
 </style>

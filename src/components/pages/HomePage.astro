@@ -1,10 +1,5 @@
 ---
 import MainLayout from "../../layouts/MainLayout.astro";
-import TornPaper from "../TornPaper.astro";
-import SectionEyebrow from "../ui/SectionEyebrow.astro";
-import SectionTitle from "../ui/SectionTitle.astro";
-import SectionLead from "../ui/SectionLead.astro";
-import salutSvg from "../../assets/salut.svg?raw";
 import { getT, type Locale } from "../../i18n/utils";
 
 interface Props {
@@ -13,6 +8,10 @@ interface Props {
 
 const { locale } = Astro.props;
 const t = getT(locale);
+
+// Portrait « auto » de l'atelier (placeholder Unsplash — à remplacer par une vraie image)
+const selfPortrait =
+  "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=1200&q=80";
 ---
 
 <MainLayout
@@ -22,116 +21,165 @@ const t = getT(locale);
   description={t("about.lead")}
 >
   {/* ===== HERO ===== */}
-  <section id="hero" class="w-full h-dvh flex items-center justify-center px-6 py-16 relative [scroll-snap-align:start] [scroll-snap-stop:always] transition-colors duration-300">
-    <TornPaper variant={2} tone="paper" rotation={-1.2} class="hero-paper hero-paper--anim">
-      <div class="hero-paper__inner">
-        <div class="salut-svg" set:html={salutSvg} />
-        <p class="font-display font-bold text-[clamp(1.5rem,3vw,2.5rem)] -tracking-wider m-0">Camille Neto</p>
-        <p class="font-display text-xs uppercase tracking-[0.3em] opacity-60 m-0">{t("hero.tagline")}</p>
+  <section
+    id="hero"
+    class="min-h-dvh relative flex flex-col px-6 md:px-12 [scroll-snap-align:start] [scroll-snap-stop:always]"
+  >
+    <div class="flex-1 flex flex-col items-center justify-center text-center py-20">
+      <span class="h-label red mb-6 block">{t("hero.kicker")}</span>
+      <h1 class="disp" style="font-size:clamp(3.2rem,11vw,9rem);">Camille<br />Neto</h1>
+      <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
+        <span class="h-label">{t("hero.tag1")}</span>
+        <span class="red">×</span>
+        <span class="h-label">{t("hero.tag2")}</span>
+        <span class="red">×</span>
+        <span class="h-label">{t("hero.tag3")}</span>
       </div>
-    </TornPaper>
-    <a
-      href="#about"
-      class="absolute bottom-6 left-1/2 -translate-x-1/2 text-[var(--color-fg)] text-2xl no-underline opacity-70 z-10 animate-[bob_2s_ease-in-out_infinite]"
-      aria-label={t("scroll.cue")}
-    >↓</a>
+      <p class="h-body max-w-md mt-10" style="color:var(--fg-muted);">{t("hero.lead")}</p>
+    </div>
+
+    <div class="border-t grid-line grid grid-cols-3 mono" style="font-size:11px; border-top:1px solid var(--line);">
+      <div class="px-4 md:px-6 py-4" style="border-right:1px solid var(--line);">N° 001 — Hero</div>
+      <a href="#about" class="px-4 md:px-6 py-4 text-center scroll-pulse" style="border-right:1px solid var(--line); text-decoration:none;">↓ {t("hero.scroll")}</a>
+      <div class="px-4 md:px-6 py-4 text-right">48°51′24″N · 2°21′07″E</div>
+    </div>
   </section>
 
   {/* ===== À PROPOS ===== */}
-  <section id="about" class="w-full h-dvh flex items-center justify-center px-6 py-16 relative [scroll-snap-align:start] [scroll-snap-stop:always] transition-colors duration-300">
-    <TornPaper variant={3} tone="paper-soft" rotation={0.8} class="about-paper">
-      <div class="p-[clamp(2rem,5vw,4rem)]">
-        <SectionEyebrow>{t("about.eyebrow")}</SectionEyebrow>
-        <SectionTitle as="h2">{t("about.title")}</SectionTitle>
-        <SectionLead>{t("about.lead")}</SectionLead>
-        <p class="text-[0.95rem] leading-[1.7] m-0 opacity-75">{t("about.body")}</p>
+  <section
+    id="about"
+    class="min-h-dvh relative px-6 md:px-12 py-16 flex items-center [scroll-snap-align:start]"
+  >
+    <div class="grid md:grid-cols-12 gap-0 box w-full">
+      <div
+        class="md:col-span-5 photo-frame relative"
+        style="border:0; border-bottom:1.5px solid var(--ink);"
+      >
+        <div class="scan-mark tl"></div>
+        <div class="scan-mark br"></div>
+        <img
+          src={selfPortrait}
+          alt={t("about.title")}
+          loading="lazy"
+          decoding="async"
+          class="w-full object-cover block"
+          style="aspect-ratio:4/5;"
+        />
+        <div
+          class="flex justify-between px-4 py-3 mono"
+          style="font-size:10px; border-top:1px solid var(--line);"
+        >
+          <span>{t("about.photoCaption")}</span><span>04 / 2025</span>
+        </div>
       </div>
-    </TornPaper>
+
+      <div class="md:col-span-7 p-8 md:p-16 flex flex-col justify-center">
+        <span class="h-label red mb-6 block">N° 002 — {t("about.eyebrow")}</span>
+        <h2 class="disp mb-8" style="font-size:clamp(2rem,5vw,3.6rem);">{t("about.title")}</h2>
+        <p class="h-body mb-4" style="color:var(--fg-muted);">{t("about.lead")}</p>
+        <p class="h-body mb-10" style="color:var(--fg-muted);">{t("about.body")}</p>
+        <div class="pt-8" style="border-top:1px solid var(--line);">
+          <p style="font-size:22px; line-height:1.35; font-weight:600;">{t("about.quote")}</p>
+          <span class="h-label mt-4 block" style="font-size:10px; color:#666;">{t("about.quoteAuthor")}</span>
+        </div>
+      </div>
+    </div>
   </section>
 
   {/* ===== CONTACT ===== */}
-  <section id="contact" class="w-full h-dvh flex items-center justify-center px-6 py-16 relative [scroll-snap-align:start] [scroll-snap-stop:always] transition-colors duration-300">
-    <TornPaper variant={4} tone="paper" rotation={-0.5} class="contact-paper">
-      <div class="p-[clamp(2rem,5vw,4rem)]">
-        <SectionEyebrow>{t("contact.eyebrow")}</SectionEyebrow>
-        <SectionTitle as="h2">{t("contact.title")}</SectionTitle>
-        <ul class="list-none p-0 mt-4 flex flex-col gap-3">
-          <li><a href="mailto:hello@camilleneto.com" class="contact-link">hello@camilleneto.com</a></li>
-          <li><a href="https://instagram.com/camille.neto" target="_blank" rel="noopener" class="contact-link">@camille.neto — Instagram</a></li>
-          <li><a href="tel:+33600000000" class="contact-link">+33 6 00 00 00 00</a></li>
-        </ul>
+  <section
+    id="contact"
+    class="min-h-dvh relative px-6 md:px-12 py-16 flex items-center [scroll-snap-align:start]"
+  >
+    <div class="grid md:grid-cols-12 gap-0 box w-full">
+      <div
+        class="md:col-span-5 p-8 md:p-16"
+        style="border-bottom:1.5px solid var(--ink);"
+      >
+        <span class="h-label red mb-6 block">N° 003 — {t("contact.eyebrow")}</span>
+        <h2 class="disp mb-8" style="font-size:clamp(2.2rem,6vw,4rem);">{t("contact.title")}</h2>
+        <p class="h-body mb-10" style="color:var(--fg-muted); max-width:40ch;">{t("contact.lead")}</p>
+
+        <div class="mono space-y-4" style="font-size:13px;">
+          <div>
+            <span class="h-label block mb-1" style="font-size:10px; color:#777;">{t("contact.studioLabel")}</span>
+            {t("contact.studio")}
+          </div>
+          <div>
+            <span class="h-label block mb-1" style="font-size:10px; color:#777;">{t("contact.availLabel")}</span>
+            {t("contact.avail")}
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 mt-10">
+          <a href="https://instagram.com/camille.neto" target="_blank" rel="noopener" class="btn">@camille.neto</a>
+          <a href="mailto:hello@camilleneto.com" class="btn btn-red">hello@camilleneto.com</a>
+        </div>
       </div>
-    </TornPaper>
+
+      <div class="md:col-span-7 p-8 md:p-16">
+        <span class="h-label mb-8 block">{t("contact.formTag")}</span>
+        <form id="contact-form" class="contact-form space-y-7">
+          <div class="grid md:grid-cols-2 gap-7">
+            <label class="block">
+              <span class="h-label block mb-2" style="font-size:10px; color:#777;">{t("contact.form.nameLabel")}</span>
+              <input class="field" type="text" placeholder={t("contact.form.namePh")} required />
+            </label>
+            <label class="block">
+              <span class="h-label block mb-2" style="font-size:10px; color:#777;">{t("contact.form.emailLabel")}</span>
+              <input class="field" type="email" placeholder={t("contact.form.emailPh")} required />
+            </label>
+          </div>
+          <label class="block">
+            <span class="h-label block mb-2" style="font-size:10px; color:#777;">{t("contact.form.subjectLabel")}</span>
+            <select class="field">
+              <option>{t("contact.form.subject1")}</option>
+              <option>{t("contact.form.subject2")}</option>
+              <option>{t("contact.form.subject3")}</option>
+              <option>{t("contact.form.subject4")}</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="h-label block mb-2" style="font-size:10px; color:#777;">{t("contact.form.messageLabel")}</span>
+            <textarea class="field" rows="5" placeholder={t("contact.form.messagePh")} required></textarea>
+          </label>
+          <div class="flex items-center justify-between pt-4 gap-4">
+            <span class="mono" style="font-size:11px; color:#777;">{t("contact.form.privacy")}</span>
+            <button type="submit" class="btn btn-red">{t("contact.form.send")}</button>
+          </div>
+          <div class="confirmation mono" style="display:none; font-size:13px;">{t("contact.form.confirm")}</div>
+        </form>
+      </div>
+    </div>
   </section>
 </MainLayout>
 
+<script>
+  function wireContactForm() {
+    const form = document.getElementById("contact-form") as HTMLFormElement | null;
+    if (!form || form.dataset.wired === "true") return;
+    form.dataset.wired = "true";
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const confirmation = form.querySelector<HTMLElement>(".confirmation");
+      if (confirmation) confirmation.style.display = "block";
+      form.reset();
+    });
+  }
+  wireContactForm();
+  document.addEventListener("astro:after-swap", wireContactForm);
+</script>
+
 <style>
-  /* === Hero papier (taille spécifique, animation paperDrop) === */
-  .hero-paper {
-    width: min(90%, 60rem);
-    aspect-ratio: 5 / 3;
-  }
-  .hero-paper__inner {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: clamp(1.5rem, 4vw, 3rem);
-  }
-  .salut-svg {
-    width: 100%;
-    max-width: 28rem;
-    height: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: inherit;
-  }
-  .salut-svg :global(svg) { width: 100%; height: 100%; max-height: 100%; }
-  .salut-svg :global(svg path),
-  .salut-svg :global(svg g) { fill: currentColor !important; }
+  .space-y-4 > * + * { margin-top: 16px; }
+  .space-y-7 > * + * { margin-top: 28px; }
 
-  .hero-paper--anim {
-    animation: paperDrop 1.2s var(--ease-tear) both;
-    transform-origin: center top;
+  @keyframes scrollPulse {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50%      { transform: translateY(6px); opacity: 1; }
   }
-  @keyframes paperDrop {
-    0%   { opacity: 0; transform: translateY(-3rem) rotate(-8deg) scale(0.92); }
-    60%  { opacity: 1; transform: translateY(0.4rem) rotate(0.5deg) scale(1.01); }
-    100% { opacity: 1; transform: translateY(0) rotate(-1.2deg) scale(1); }
-  }
+  .scroll-pulse { animation: scrollPulse 2.2s ease-in-out infinite; }
   @media (prefers-reduced-motion: reduce) {
-    .hero-paper--anim { animation: none; }
+    .scroll-pulse { animation: none; }
   }
-
-  /* Scroll cue : keyframe non disponible en utilitaire Tailwind par défaut */
-  @keyframes bob {
-    0%, 100% { transform: translate(-50%, 0); }
-    50%      { transform: translate(-50%, 0.4rem); }
-  }
-
-  /* === Sizings spécifiques aux papiers About / Contact === */
-  .about-paper {
-    width: min(90%, 48rem);
-    min-height: 60dvh;
-  }
-  .contact-paper {
-    width: min(90%, 44rem);
-    min-height: 50dvh;
-  }
-
-  /* === Liens de contact (border-bottom animé) === */
-  .contact-link {
-    font-family: var(--font-display);
-    font-size: 1.125rem;
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 0.15rem;
-    transition: opacity 0.2s ease;
-  }
-  .contact-link:hover { opacity: 0.6; }
 </style>

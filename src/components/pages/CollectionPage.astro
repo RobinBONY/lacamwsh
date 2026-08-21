@@ -1,8 +1,7 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
 import MainLayout from "../../layouts/MainLayout.astro";
-import SectionTitle from "../ui/SectionTitle.astro";
-import { getT, formatDate, type Locale } from "../../i18n/utils";
+import { getT, formatDate, localizePath, type Locale } from "../../i18n/utils";
 
 interface Props {
   entry: CollectionEntry<"collections">;
@@ -25,6 +24,9 @@ const galleryJsonLd = {
     contentUrl: src,
   })),
 };
+
+const photoCount = entry.data.photos.length;
+const tags = entry.data.tags ?? [];
 ---
 
 <MainLayout
@@ -35,42 +37,70 @@ const galleryJsonLd = {
 >
   <script is:inline type="application/ld+json" set:html={JSON.stringify(galleryJsonLd)} />
 
-  <article class="min-h-dvh px-6 pt-24 pb-16 max-w-7xl mx-auto bg-[var(--color-bg)] text-[var(--color-fg)]">
-    <header class="text-center mb-12">
-      <p class="text-xs uppercase tracking-[0.25em] opacity-50 m-0 mb-3">
-        {formatDate(entry.data.date, locale)}
-      </p>
-      <SectionTitle as="h1" size="large">{entry.data.title}</SectionTitle>
-      {
-        entry.data.description && (
-          <p class="text-lg opacity-80 max-w-2xl mx-auto mb-6 leading-relaxed">
-            {entry.data.description}
-          </p>
-        )
-      }
-      <div class="max-w-2xl mx-auto text-[0.95rem] leading-[1.7] opacity-70">
-        <Content />
+  <article class="min-h-dvh px-6 md:px-12 py-16">
+    {/* Fil d'Ariane */}
+    <div class="flex items-center gap-4 mb-8 mono" style="font-size:12px; color:#666;">
+      <a href={localizePath("/collections", locale)}>← {t("collection.back")}</a>
+      <span>/</span>
+      <span class="red">{entry.data.title}</span>
+    </div>
+
+    {/* En-tête 12 colonnes */}
+    <header
+      class="grid md:grid-cols-12 gap-8 items-end pb-10 mb-10"
+      style="border-bottom:2px solid var(--ink);"
+    >
+      <h1 class="disp md:col-span-8" style="font-size:clamp(2.4rem,7vw,5rem);">{entry.data.title}</h1>
+      <div class="md:col-span-4 mono space-y-2" style="font-size:13px;">
+        <div>
+          <span class="h-label" style="color:#777; font-size:10px;">{t("collection.metaPeriodLabel")}</span><br />
+          {formatDate(entry.data.date, locale)}
+        </div>
+        <div>
+          <span class="h-label" style="color:#777; font-size:10px;">{t("collection.metaFormatLabel")}</span><br />
+          {t("collection.metaFormat")}
+        </div>
+        {tags.length > 0 && (
+          <div>
+            <span class="h-label" style="color:#777; font-size:10px;">{t("collection.metaSeriesLabel")}</span><br />
+            {tags.join(" · ")}
+          </div>
+        )}
       </div>
     </header>
 
+    {entry.data.description && (
+      <p class="max-w-2xl h-body mb-6" style="color:var(--fg-muted);">{entry.data.description}</p>
+    )}
+    <div class="max-w-2xl h-body mb-12" style="color:var(--fg-muted);">
+      <Content />
+    </div>
+
+    {/* Galerie planche-contact — ordre randomisé côté client */}
+    <div class="gallery box" data-photos={JSON.stringify(entry.data.photos)}></div>
+
     <div
-      class="gallery columns-1 sm:columns-2 lg:columns-3 gap-4"
-      data-photos={JSON.stringify(entry.data.photos)}
-    ></div>
+      class="flex justify-between items-center mt-12 pt-8"
+      style="border-top:2px solid var(--ink);"
+    >
+      <span class="mono" style="font-size:11px; color:#666;">
+        {photoCount} {t("collection.platesShown")}
+      </span>
+    </div>
   </article>
 
   <div
     id="lightbox"
-    class="fixed inset-0 z-[1000] hidden items-center justify-center p-8 backdrop-blur-md"
-    style="background-color: rgba(10,10,10,0.96);"
+    class="lightbox"
     aria-hidden="true"
     role="dialog"
+    aria-modal="true"
   >
-    <button class="lightbox-btn absolute top-6 right-6" aria-label="Close" data-lightbox-action="close">×</button>
-    <button class="lightbox-btn absolute left-6 top-1/2 -translate-y-1/2" aria-label="Previous" data-lightbox-action="prev">‹</button>
-    <img class="lightbox-image max-w-[90vw] max-h-[85vh] object-contain select-none shadow-[0_20px_60px_rgba(0,0,0,0.6)]" alt="" />
-    <button class="lightbox-btn absolute right-6 top-1/2 -translate-y-1/2" aria-label="Next" data-lightbox-action="next">›</button>
-    <p class="lightbox-counter absolute bottom-6 left-1/2 -translate-x-1/2 text-xs uppercase tracking-[0.2em] opacity-70 m-0" style="color: #f4ede0;"></p>
+    <button class="btn lightbox-ctrl" style="position:absolute; top:24px; right:24px;" aria-label="Close" data-lightbox-action="close">✕</button>
+    <button class="btn lightbox-ctrl" style="position:absolute; left:24px; top:50%; transform:translateY(-50%);" aria-label="Previous" data-lightbox-action="prev">‹</button>
+    <img class="lightbox-image" alt="" />
+    <button class="btn lightbox-ctrl" style="position:absolute; right:24px; top:50%; transform:translateY(-50%);" aria-label="Next" data-lightbox-action="next">›</button>
+    <span class="lightbox-counter mono" style="position:absolute; bottom:24px; left:24px; font-size:12px; color:#aaa;"></span>
   </div>
 </MainLayout>
 
@@ -92,8 +122,9 @@ const galleryJsonLd = {
     container.innerHTML = shuffled
       .map(
         (src, i) => `
-          <button type="button" class="gallery-item" data-lightbox-index="${i}">
+          <button type="button" class="gallery-item cell" data-lightbox-index="${i}">
             <img src="${src}" alt="" loading="lazy" decoding="async" />
+            <span class="gcap mono">${String(i + 1).padStart(3, "0")}</span>
           </button>
         `,
       )
@@ -119,8 +150,7 @@ const galleryJsonLd = {
     const lb = document.getElementById("lightbox");
     if (!lb) return;
     lb.setAttribute("aria-hidden", "false");
-    lb.classList.remove("hidden");
-    lb.classList.add("flex");
+    lb.classList.add("open");
     updateLightboxImage();
     document.body.style.overflow = "hidden";
   }
@@ -129,8 +159,7 @@ const galleryJsonLd = {
     const lb = document.getElementById("lightbox");
     if (!lb) return;
     lb.setAttribute("aria-hidden", "true");
-    lb.classList.add("hidden");
-    lb.classList.remove("flex");
+    lb.classList.remove("open");
     document.body.style.overflow = "";
   }
 
@@ -184,49 +213,79 @@ const galleryJsonLd = {
 </script>
 
 <style>
-  /* Items galerie + lightbox : classes nommées car injectées en JS
-     (Tailwind ne peut pas les analyser dans innerHTML) */
+  .space-y-2 > * + * { margin-top: 8px; }
+
+  /* Galerie masonry — planche-contact */
+  .gallery {
+    column-count: 1;
+    column-gap: 0;
+  }
+  @media (min-width: 720px) { .gallery { column-count: 2; } }
+  @media (min-width: 1100px) { .gallery { column-count: 3; } }
+
   .gallery :global(.gallery-item) {
+    position: relative;
     display: block;
-    margin-bottom: 1rem;
-    break-inside: avoid;
-    overflow: hidden;
-    background-color: var(--color-bg-alt);
-    border: 1px solid var(--color-border);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
     width: 100%;
     padding: 0;
+    margin: 0;
+    break-inside: avoid;
+    background: var(--paper);
     cursor: zoom-in;
     appearance: none;
+    overflow: hidden;
   }
-  .gallery :global(.gallery-item:hover) {
-    transform: scale(1.02);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  }
-  .gallery :global(img) {
+  .gallery :global(.gallery-item img) {
     width: 100%;
     height: auto;
     display: block;
+    filter: grayscale(1) contrast(1.05);
+    transition: filter 300ms ease, transform 500ms ease;
+  }
+  .gallery :global(.gallery-item:hover img) {
+    filter: grayscale(0) contrast(1);
+    transform: scale(1.02);
+  }
+  .gallery :global(.gcap) {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    font-size: 10px;
+    color: var(--paper);
+    mix-blend-mode: difference;
+    letter-spacing: 0.1em;
   }
 
-  /* Boutons lightbox (clavier-accessibles) */
-  .lightbox-btn {
-    background: transparent;
-    color: #f4ede0;
-    border: 1px solid rgba(244, 237, 224, 0.3);
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.5rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
+  /* Lightbox */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 13, 13, 0.97);
+    display: none;
     align-items: center;
     justify-content: center;
-    font-family: var(--font-display);
+    z-index: 200;
+    padding: 5vh;
   }
-  .lightbox-btn:hover {
-    background-color: #f4ede0;
-    color: #0a0a0a;
+  .lightbox.open { display: flex; }
+  .lightbox .lightbox-image {
+    max-width: 92vw;
+    max-height: 88vh;
+    object-fit: contain;
+    filter: grayscale(1);
+    user-select: none;
+  }
+  .lightbox :global(.lightbox-ctrl) {
+    border-color: var(--paper);
+    color: var(--paper);
+    background: transparent;
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    font-size: 1.25rem;
+  }
+  .lightbox :global(.lightbox-ctrl:hover) {
+    background: var(--paper);
+    color: var(--ink);
   }
 </style>

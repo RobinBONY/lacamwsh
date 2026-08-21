@@ -13,26 +13,73 @@ const { currentPage = "", locale = DEFAULT_LOCALE }: Props = Astro.props;
 const t = getT(locale);
 
 // "Collections" est actif sur /collections ET sur chaque page de collection
-const collectionsActive = currentPage === "all" || (currentPage !== "" && currentPage !== "home");
+const collectionsActive =
+  currentPage === "all" || (currentPage !== "" && currentPage !== "home");
 ---
 
-<header
-  class="fixed top-0 inset-x-0 z-50 flex items-center justify-between gap-3 px-4 py-3 lg:px-5 lg:py-4 backdrop-blur-md border-b"
-  style="background-color: color-mix(in srgb, var(--color-bg) 85%, transparent); border-color: var(--color-border);"
->
-  <div class="flex items-center gap-3">
-    <Logo locale={locale} />
+<header class="topnav" aria-label="Navigation principale">
+  <Logo locale={locale} />
+
+  <div class="flex items-stretch">
     <a
       href={localizePath("/collections", locale)}
-      class:list={["btn", collectionsActive && "btn--active"]}
+      class:list={["nav-cell nav-btn h-label", collectionsActive && "is-active"]}
       aria-current={collectionsActive ? "page" : undefined}
       data-astro-prefetch
     >
-      {t("nav.collections")}
+      {t("nav.collections")} ↗
     </a>
-  </div>
 
-  <Menu locale={locale} />
+    <Menu locale={locale} />
+
+    <a href="#contact" class="nav-cell nav-btn h-label">{t("menu.contact")}</a>
+  </div>
 </header>
 
 <Navbar currentPage={currentPage} locale={locale} />
+
+<style>
+  .topnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-h);
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .topnav > :global(*) {
+    border-left: 1px solid var(--ink);
+  }
+  .topnav > :global(*:first-child) {
+    border-left: none;
+  }
+
+  /* Cellules cliquables (logo, liens, boutons) */
+  :global(.nav-cell) {
+    display: flex;
+    align-items: center;
+    padding: 14px 22px;
+  }
+  :global(.nav-btn) {
+    transition: background 150ms, color 150ms;
+    text-decoration: none;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  :global(.nav-btn:hover),
+  :global(.nav-btn.is-active) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  @media (max-width: 560px) {
+    :global(.nav-cell) {
+      padding: 12px 14px;
+    }
+  }
+</style>

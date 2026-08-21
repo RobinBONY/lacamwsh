@@ -1,6 +1,5 @@
 ---
 import { getCollection } from "astro:content";
-import TornPaper from "./TornPaper.astro";
 import { localizePath, DEFAULT_LOCALE, type Locale } from "../i18n/utils";
 
 interface Props {
@@ -10,203 +9,120 @@ interface Props {
 
 const { currentPage = "", locale = DEFAULT_LOCALE }: Props = Astro.props;
 
-const allCollections = await getCollection("collections", ({ data }) => {
-  return data.draft !== true;
-});
+const allCollections = await getCollection("collections", ({ data }) => data.draft !== true);
 
 const sortedCollections = allCollections.sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 
-const ROTATIONS = [-1.6, 0.9, -0.6, 1.2, -1.0, 0.5, -1.3, 0.8];
-const TONES: Array<"paper" | "paper-soft"> = ["paper", "paper-soft"];
-const OFFSETS = [0, -3, 2, -4, 1, -2, 3, -1];
-const VARIANTS = [1, 2, 3, 4, 5] as const;
-
 interface Tab {
   href: string;
   label: string;
+  num: string;
   active: boolean;
-  rotation: number;
-  tone: "paper" | "paper-soft";
-  offset: number;
-  variant: 1 | 2 | 3 | 4 | 5;
 }
 
 const tabs: Tab[] = sortedCollections.map((entry, i) => ({
   href: localizePath(`/collections/${entry.id}`, locale),
   label: entry.data.title,
+  num: String(i + 1).padStart(2, "0"),
   active: currentPage === entry.id,
-  rotation: ROTATIONS[i % ROTATIONS.length],
-  tone: TONES[i % TONES.length],
-  offset: OFFSETS[i % OFFSETS.length],
-  variant: VARIANTS[i % VARIANTS.length],
 }));
 ---
 
-<aside class="intercalaires" aria-label="Collections">
-  <ul class="intercalaires-list">
-    {
-      tabs.map((tab, i) => (
-        <li
-          class:list={[
-            "intercalaire-wrapper",
-            tab.active && "intercalaire-wrapper--active",
-          ]}
-          style={`--idx: ${i}; --offset: ${tab.offset}px; --rotation: ${tab.rotation}deg;`}
-        >
-          <a
-            href={tab.href}
-            class="intercalaire-link"
-            aria-current={tab.active ? "page" : undefined}
-            data-astro-prefetch
-          >
-            <TornPaper
-              variant={tab.variant}
-              tone={tab.tone}
-              rotation={tab.rotation}
-              class="intercalaire"
-            >
-              <div class="intercalaire-inner">
-                <span class="intercalaire-label">{tab.label}</span>
-              </div>
-            </TornPaper>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-</aside>
+<nav class="tab-stack" aria-label="Collections">
+  {
+    tabs.map((tab) => (
+      <a
+        href={tab.href}
+        class:list={["tab", tab.active && "active"]}
+        aria-current={tab.active ? "page" : undefined}
+        data-astro-prefetch
+      >
+        <span class="num">{tab.num}</span>
+        <span>{tab.label}</span>
+      </a>
+    ))
+  }
+</nav>
 
 <style>
-  /* ============================================================
-     INTERCALAIRES (desktop ≥ 1024px)
-     ============================================================ */
-  .intercalaires {
+  .tab-stack {
     position: fixed;
-    top: 4.5rem;
-    bottom: 0;
+    top: var(--nav-h);
     left: 0;
-    width: 5rem;
-    z-index: 30;
-    overflow-y: auto;
-    overflow-x: visible;
-    padding: 1rem 0 2rem;
-    scrollbar-width: none;
-  }
-  .intercalaires::-webkit-scrollbar { display: none; }
-
-  .intercalaires-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    height: calc(100vh - var(--nav-h));
+    z-index: 40;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    width: var(--rail-w);
+    border-right: 1.5px solid var(--ink);
+    background: var(--paper);
+    overflow-y: auto;
+    scrollbar-width: none;
   }
+  .tab-stack::-webkit-scrollbar { display: none; }
 
-  .intercalaire-wrapper {
-    position: relative;
-    margin-left: var(--offset, 0);
-    z-index: calc(10 + var(--idx, 0));
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .intercalaire-wrapper:hover {
-    transform: translateX(0.75rem);
-    z-index: 100;
-  }
-
-  .intercalaire-wrapper--active { transform: translateX(1.25rem); z-index: 90; }
-  .intercalaire-wrapper--active:hover { transform: translateX(1.5rem); }
-
-  .intercalaire-link {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  :global(.intercalaire) {
-    width: 4.5rem !important;
-    min-height: 6rem !important;
-    filter: drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.35)) !important;
-    transition: filter 0.3s ease, transform 0.4s ease !important;
-  }
-
-  .intercalaire-wrapper:hover :global(.intercalaire),
-  .intercalaire-wrapper--active :global(.intercalaire) {
-    filter: drop-shadow(4px 6px 12px rgba(0, 0, 0, 0.5)) !important;
-  }
-
-  .intercalaire-inner {
+  .tab {
+    flex: 1 0 auto;
+    min-height: 9rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.25rem 0.25rem;
-    width: 100%;
-    height: 100%;
-    min-height: inherit;
-  }
-
-  .intercalaire-label {
+    border-bottom: 1px solid var(--ink);
     writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
+    transform: rotate(180deg);
+    font-size: 11px;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: inherit;
-    white-space: nowrap;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 180ms, color 180ms;
+    padding: 14px 0;
+    gap: 10px;
+  }
+  .tab:last-child { border-bottom: none; }
+  .tab:hover { background: var(--ink); color: var(--paper); }
+  .tab.active {
+    background: var(--red);
+    color: var(--paper);
+    border-color: var(--red);
+  }
+  .tab .num {
+    font-size: 9px;
+    opacity: 0.6;
+    letter-spacing: 0.1em;
   }
 
   /* ============================================================
-     MOBILE (< 1024px) — bandeau bas horizontal
+     MOBILE (< 900px) — bandeau bas horizontal
      ============================================================ */
-  @media (max-width: 1023px) {
-    .intercalaires {
+  @media (max-width: 899px) {
+    .tab-stack {
       top: auto;
       right: 0;
       bottom: 0;
       left: 0;
       width: auto;
       height: auto;
-      padding: 0.5rem 0;
-      background-color: var(--color-bg-alt);
-      border-top: 1px solid var(--color-border);
+      flex-direction: row;
+      border-right: none;
+      border-top: 1.5px solid var(--ink);
       overflow-x: auto;
       overflow-y: hidden;
     }
-
-    .intercalaires-list {
-      flex-direction: row;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0 0.75rem;
-    }
-
-    .intercalaire-wrapper {
-      margin-left: 0;
-      flex-shrink: 0;
-    }
-
-    .intercalaire-wrapper:hover,
-    .intercalaire-wrapper--active {
-      transform: translateY(-0.25rem);
-    }
-
-    :global(.intercalaire) {
-      width: 6rem !important;
-      min-height: auto !important;
-      height: 3rem !important;
-    }
-
-    .intercalaire-inner { padding: 0.25rem 0.5rem; }
-
-    .intercalaire-label {
+    .tab {
+      flex: 0 0 auto;
+      min-height: 0;
       writing-mode: horizontal-tb;
-      font-size: 0.65rem;
+      transform: none;
+      border-bottom: none;
+      border-right: 1px solid var(--ink);
+      padding: 12px 18px;
       white-space: nowrap;
     }
+    .tab:last-child { border-right: none; }
   }
 </style>

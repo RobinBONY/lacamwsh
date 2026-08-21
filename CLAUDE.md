@@ -18,8 +18,9 @@ Site vitrine pour un **photographe** (client final), construit avec **Astro** af
 - **CSS** : Tailwind CSS 4 (via `@tailwindcss/vite`) + design tokens via `@theme`
 - **SEO** : `@astrojs/sitemap` (génère `sitemap-index.xml` + hreflang multi-langue)
 - **i18n** : Astro natif (FR par défaut, /en/, /pt/ préfixés)
-- **Thème** : dark/light toggle via `localStorage` + classe `.dark` sur `<html>`
-- **Composants UI** : ❌ Flowbite désinstallé — composants custom (lightbox, dropdown lang, navbar intercalaires) plus légers et cohérents avec l'identité artistique
+- **Thème** : **mono-thème éditorial** (ivoire/encre/rouge). Le toggle dark/light a été retiré lors de la refonte « Atelier » (2026-08) — le design n'a pas de variante sombre.
+- **Typo** : **Archivo** + **Archivo Black** (Google Fonts) — Swiss modernist
+- **Composants UI** : ❌ Flowbite désinstallé — composants custom (lightbox clavier, dropdown lang, rail d'onglets vertical, grain argentique) légers et cohérents avec l'identité éditoriale
 
 ---
 
@@ -70,16 +71,18 @@ Site vitrine pour un **photographe** (client final), construit avec **Astro** af
 
 ---
 
-## 5. Identité visuelle (décisions du 2026-05-25)
+## 5. Identité visuelle (refonte « Atelier » — 2026-08, remplace le thème papier déchiré)
 
 | Axe                     | Choix                                                              |
 |-------------------------|--------------------------------------------------------------------|
 | Univers photo           | **Portraits / mode éditoriale**                                    |
-| Palette                 | **Noir profond** dominant + **papier déchiré clair** (ivoire/blanc cassé) qui révèle le contenu |
-| Typographie             | **Helvetica** (Swiss modernist — contraste avec le côté organique du papier) |
-| Effet « papier déchiré »| **Partout** comme effet de style : backgrounds, transitions de sections, cadres photos, intercalaires navbar, accents UI |
+| Palette                 | **Ivoire** `#f2ede4` (fond) + **encre** `#0d0d0d` + accent **rouge** `#e0331e` · filets `rgba(13,13,13,.16)` |
+| Typographie             | **Archivo** (corps) + **Archivo Black** (titres `.disp`, capitales, tracking serré) · mono pour les métadonnées catalogue |
+| Signatures visuelles    | Grain argentique (overlay SVG), grilles bordées type catalogue (`.box`/`.cell`), cadres photo N&B avec repères de scan rouges (`.scan-mark`), rail d'onglets vertical (index), numérotation éditoriale « N° 00x » |
 
 **Référence d'ambiance** : catalogue d'exposition photo (Magnum, Aperture, MoMA) — sobre, dramatique, l'image prime.
+
+> Ancien thème « papier déchiré » (`TornPaper.astro`, dark/light Helvetica) **supprimé**. Tokens dans `src/styles/global.css` (`--paper/--ink/--red/--line` + `@theme`).
 
 ---
 
@@ -90,12 +93,11 @@ Site vitrine pour un **photographe** (client final), construit avec **Astro** af
 src/
 ├── components/
 │   ├── pages/            ← composants de page partagés entre locales (HomePage, CollectionsIndex, CollectionPage)
-│   ├── ui/               ← briques UI réutilisables (SEO, SectionTitle, SectionEyebrow, SectionLead)
-│   ├── TornPaper.astro   ← composant signature du projet
-│   ├── Navbar.astro      ← intercalaires (desktop) / bandeau (mobile)
-│   ├── Menu.astro        ← topbar droite : contact + thème + langue
-│   ├── Logo.astro
-│   └── Panel.astro       ← topbar + navbar wrapper
+│   ├── ui/               ← briques UI réutilisables (SEO)
+│   ├── Navbar.astro      ← rail d'onglets vertical (desktop) / bandeau bas (mobile)
+│   ├── Menu.astro        ← cellule barre : sélecteur de langue
+│   ├── Logo.astro        ← cellule barre : logo → accueil
+│   └── Panel.astro       ← barre supérieure (.topnav) + Navbar wrapper
 ├── pages/                ← uniquement des coquilles 3 lignes qui appellent components/pages/
 ├── layouts/
 │   └── MainLayout.astro  ← <html>, <head> via <SEO>, ClientRouter, theme script
@@ -130,6 +132,7 @@ npm run preview  # Servir le build
 ## 8. Roadmap
 
 ### ✅ Fait
+- [x] **Refonte visuelle « Atelier »** (2026-08) : thème éditorial Archivo ivoire/encre/rouge appliqué depuis un design Claude Design — suppression du papier déchiré + dark mode, grain argentique, grilles catalogue, rail d'onglets, formulaire de contact (visuel)
 - [x] Astro Content Collections (`src/content.config.ts` + 3 .md d'exemple)
 - [x] Page `/collections` (mosaïque de cartes papier déchiré)
 - [x] Route dynamique `/collections/[slug]` + galerie aléatoire client-side
